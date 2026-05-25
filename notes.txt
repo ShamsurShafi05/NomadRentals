@@ -1,0 +1,57 @@
+// Install virtual environment 
+// To keep dependancies isolated between projects
+python -m venv myenv            [ venv for virtual-environment ]
+
+
+// To activate environment copy file path of Activate script from Scripts folder
+// Must use the one referencing to Powershell 
+Eg. f:\NomadRentals\venv\Scripts\Activate.ps1
+    OR
+    venv/Scripts/Activate.ps1
+
+// To get out of virtual environment
+deactivate
+
+// To check all Python packages installed IN THIS PROJECT (not in entire machine)
+pip list
+
+// To get started with FastAPI:
+pip install fastapi
+pip install uvicorn
+
+[ fastapi is a framework, uvicorn is the web server and web applications run on a sever;
+Similar to, when working with Java, Tomcat is the web server;
+            when working with React-Node, NodeJS is the web server; 
+            when working with PHP, XAMPP is the web server]
+
+
+// Copilot snooze is kinda dope (bottom left of lower panel)
+
+// VERY IMPORTANT
+models.py (SQLAlchemy) — talks to the database. It knows about columns, foreign keys, relationships. But it has no idea about HTTP requests or responses.
+schemas.py (Pydantic) — talks to the outside world. It validates what comes in from the API and shapes what goes out. But it has no idea about databases.
+
+Eg. 
+# Your SQLAlchemy model has ALL columns including sensitive ones
+class User(Base):
+    id = Column(Integer, primary_key=True)
+    email = Column(String)
+    name = Column(String)
+    password = Column(String)      # ← exists in DB
+    created_at = Column(DateTime)  # ← exists in DB
+
+BUT
+
+# Your Pydantic schema controls what the API actually returns
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    # password is NOT here — never sent to client
+    # created_at is NOT here — client doesn't need it
+
+Three practical reasons they must be separate:
+1. Security — you never accidentally expose password hashes, internal flags, or admin fields because you control exactly what goes in Response schemas.
+2. Input vs output are different shapes — when creating a user, the client sends email and name. The response back includes id and created_at which the DB generated. Same table, completely different shapes.
+3. Validation — EmailStr, optional fields, default values — all Pydantic's job. SQLAlchemy doesn't validate, it just stores.
+
+***SQLAlchemy is your database layer, Pydantic is your API layer. They intentionally know nothing about each other. The route function in the middle is what translates between them***
