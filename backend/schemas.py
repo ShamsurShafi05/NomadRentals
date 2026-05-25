@@ -4,7 +4,7 @@ from typing import Optional
 
 from uvicorn import Config
 
-from backend.models import City
+from models import City
 
 # Your SQLAlchemy model has ALL columns including sensitive ones like email, and also relationships to other tables.
 # Your Pydantic schema controls what the API actually returns
