@@ -4,7 +4,8 @@ from database import SessionLocal
 from models import City, UserPreference
 from schemas import CityCreate, CityResponse, RecommendationResponse, CityScore
 from services.city_data import enrich_city
-
+from services.groq_insights import generate_city_insight
+import asyncio
 
 router = APIRouter(prefix="/cities", tags=["cities"])
 
@@ -136,6 +137,25 @@ async def recommend_cities(user_id: int, db: Session = Depends(get_db)):
         ))
 
     scored.sort(key=lambda x: x.match_score, reverse=True)
+
+    # Generate AI insights for top 3 only — save API calls
+    top = scored[:3]
+    insights = await asyncio.gather(*[
+        generate_city_insight(
+            city=s.city.model_dump(),
+            user_prefs={
+                "max_budget": prefs.max_budget,
+                "preferred_temp": prefs.preferred_temp,
+                "work_start_hour": prefs.work_start_hour,
+                "work_end_hour": prefs.work_end_hour,
+                "client_timezone": prefs.client_timezone
+            }
+        )
+        for s in top
+    ])
+
+    for i, insight in enumerate(insights):
+        top[i].ai_insight = insight
 
     return RecommendationResponse(user_id=user_id, recommendations=scored)
 

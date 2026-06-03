@@ -126,6 +126,8 @@ class CityScore(BaseModel):
     budget_match: float
     timezone_overlap_hours: float
 
+    ai_insight: Optional[str] = None
+
     class Config:
         from_attributes = True
 
