@@ -4,7 +4,7 @@ from typing import Optional
 
 from uvicorn import Config
 
-from backend.models import City
+from models import City
 
 # Your SQLAlchemy model has ALL columns including sensitive ones like email, and also relationships to other tables.
 # Your Pydantic schema controls what the API actually returns
@@ -116,3 +116,21 @@ class TrackedCityResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── RECOMMENDATION ─────────────────────────────────
+class CityScore(BaseModel):
+    city: CityResponse
+    match_score: float
+    temp_match: float
+    budget_match: float
+    timezone_overlap_hours: float
+
+    ai_insight: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class RecommendationResponse(BaseModel):
+    user_id: int
+    recommendations: list[CityScore]

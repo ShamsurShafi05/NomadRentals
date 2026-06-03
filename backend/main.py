@@ -14,7 +14,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="NomadRentals API",
     description="Smart city recommendations for remote workers",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan                      # V Imp: this is what runs the code to create tables on startup
 )
 
 app.include_router(cities.router)
