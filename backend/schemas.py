@@ -116,3 +116,19 @@ class TrackedCityResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── RECOMMENDATION ─────────────────────────────────
+class CityScore(BaseModel):
+    city: CityResponse
+    match_score: float
+    temp_match: float
+    budget_match: float
+    timezone_overlap_hours: float
+
+    class Config:
+        from_attributes = True
+
+class RecommendationResponse(BaseModel):
+    user_id: int
+    recommendations: list[CityScore]
