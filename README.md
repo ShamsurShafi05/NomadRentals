@@ -192,7 +192,7 @@ Top 3 results receive an AI-generated insight from Groq explaining the match in 
 
 ---
 
-## What's Next
+## Scope of Future Work
 
 - Role-based access control (admin vs user)
 - Frontend (React)
