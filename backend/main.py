@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from database import engine
 from models import Base
-from routers import cities, users
+from routers import cities, users, auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +20,8 @@ app = FastAPI(
 
 app.include_router(cities.router)
 app.include_router(users.router)
+# auth
+app.include_router(auth.router)
 
 @app.get("/")
 async def root():

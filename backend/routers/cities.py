@@ -7,6 +7,9 @@ from services.city_data import enrich_city
 from services.groq_insights import generate_city_insight
 import asyncio
 
+from auth import get_current_user
+from models import User
+
 router = APIRouter(prefix="/cities", tags=["cities"])
 
 def get_db():
@@ -43,7 +46,8 @@ async def create_city(city: CityCreate, db: Session = Depends(get_db)):
 
 # GET all cities
 @router.get("/", response_model=list[CityResponse])
-async def get_cities(db: Session = Depends(get_db)):
+async def get_cities(db: Session = Depends(get_db), 
+                    current_user: User = Depends(get_current_user)):
     try:
         cities = db.query(City).all()
     except Exception as e:

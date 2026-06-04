@@ -31,6 +31,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(100), nullable=False, unique=True)
     name = Column(String(100), nullable=False)
+    # for auth
+    hashed_password = Column(String(255), nullable=False)
+    
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     preferences = relationship("UserPreference", back_populates="user", uselist=False)

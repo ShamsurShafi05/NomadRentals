@@ -8,6 +8,8 @@ from schemas import (
     TrackedCityCreate, TrackedCityResponse
 )
 
+from auth import hash_password, get_current_user
+
 router = APIRouter(prefix="/users", tags=["users"])
 
 def get_db():
@@ -18,16 +20,36 @@ def get_db():
         db.close()
 
 # CREATE a user
+# @router.post("/", response_model=UserResponse)
+# async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+#     existing = db.query(User).filter(User.email == user.email).first()
+#     if existing:
+#         raise HTTPException(status_code=400, detail="Email already registered")
+#     new_user = User(**user.model_dump())
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+#     return new_user
 @router.post("/", response_model=UserResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = User(**user.model_dump())
+    hashed = hash_password(user.password)
+    user_data = user.model_dump()
+    user_data.pop("password")
+    user_data["hashed_password"] = hashed
+    new_user = User(**user_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
+
+# GET all users
+@router.get("/", response_model=list[UserResponse])
+async def get_users(db: Session = Depends(get_db),
+                    current_user: User = Depends(get_current_user)):
+    return db.query(User).all()
 
 # GET a user by id
 @router.get("/{user_id}", response_model=UserResponse)
@@ -90,3 +112,19 @@ async def get_tracked_cities(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     tracked = db.query(TrackedCity).filter(TrackedCity.user_id == user_id).all()
     return tracked
+
+# DELETE a user
+@router.delete("/{user_id}")
+async def delete_user(user_id: int, db: Session = Depends(get_db),
+                      current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete related data first
+    db.query(TrackedCity).filter(TrackedCity.user_id == user_id).delete()
+    db.query(UserPreference).filter(UserPreference.user_id == user_id).delete()
+    
+    db.delete(user)
+    db.commit()
+    return {"message": f"User {user.name} deleted successfully"}
